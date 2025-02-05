@@ -1,0 +1,240 @@
+
+# Sure! Let's break down each part of your script in detail.
+
+# Imports
+# python
+# Copy
+# Edit
+# import os
+# import json
+# import argparse
+# import whisper
+# from pathlib import Path
+# import warnings
+# os – Provides functions to interact with the operating system (e.g., file paths, directory traversal).
+# json – Used to save and load JSON files (for storing transcriptions).
+# argparse – Handles command-line arguments so the script can accept user inputs (like folder paths).
+# whisper – Loads OpenAI's Whisper model for automatic speech recognition (ASR).
+# Path (from pathlib) – Offers an object-oriented approach to working with file paths.
+# warnings – Handles and suppresses warnings in Python.
+# Suppress Future Warnings
+# python
+# Copy
+# Edit
+# warnings.simplefilter("ignore", category=FutureWarning)
+# Ignores all FutureWarning messages, preventing unnecessary console clutter.
+# The warning being suppressed relates to torch.load() and changes in future PyTorch versions.
+# Find Media Files in a Folder
+# python
+# Copy
+# Edit
+# def find_media_files(directory):
+#     """Recursively find audio and video files in a directory."""
+# Defines a function named find_media_files() that takes a directory path as input.
+# The function searches for media files in the specified directory and all its subdirectories.
+# python
+# Copy
+# Edit
+#     media_extensions = {'.mp3', '.wav', '.m4a', '.mp4', '.mov', '.avi', '.mkv'}
+# Defines a set of allowed file extensions (audio & video formats supported by Whisper).
+# python
+# Copy
+# Edit
+#     media_files = []
+# Initializes an empty list to store the full paths of media files.
+# python
+# Copy
+# Edit
+#     for root, _, files in os.walk(directory):
+# Uses os.walk() to iterate through all folders and files inside directory.
+# root – Current directory being scanned.
+# _ (underscore) – Represents subdirectories (ignored).
+# files – List of filenames in the current directory.
+# python
+# Copy
+# Edit
+#         for file in files:
+#             if Path(file).suffix.lower() in media_extensions:
+#                 media_files.append(os.path.join(root, file))
+# Loops through all files in the directory.
+# Checks if the file extension (case-insensitive) is in media_extensions.
+# If the file is a media file, appends its full path to media_files.
+# python
+# Copy
+# Edit
+#     return media_files
+# Returns the list of found media files.
+# Transcribe a Media File
+# python
+# Copy
+# Edit
+# def transcribe_media(file_path, model):
+#     """Transcribe a media file using Whisper."""
+# Defines transcribe_media(), which takes:
+# file_path – The media file to transcribe.
+# model – The Whisper ASR model.
+# python
+# Copy
+# Edit
+#     print(f"Processing: {file_path}")
+# Prints the file being processed.
+# python
+# Copy
+# Edit
+#     result = model.transcribe(file_path)
+# Calls Whisper's transcribe() function to convert speech to text.
+# python
+# Copy
+# Edit
+#     return result["text"]
+# Extracts and returns the transcribed text.
+# Save the Transcription
+# python
+# Copy
+# Edit
+# def save_transcription(file_path, text, output_dir):
+#     """Save the transcription to a text file."""
+# Defines save_transcription() to store the transcription as a JSON file.
+# Takes:
+# file_path – Path of the media file.
+# text – Transcribed text.
+# output_dir – Folder to save the transcription.
+# python
+# Copy
+# Edit
+#     output_dir = Path(output_dir)
+# Converts output_dir to a Path object for easier file handling.
+# python
+# Copy
+# Edit
+#     output_dir.mkdir(parents=True, exist_ok=True)
+# Ensures the output folder exists.
+# parents=True creates parent directories if they don’t exist.
+# exist_ok=True prevents errors if the directory already exists.
+# python
+# Copy
+# Edit
+#     output_file = output_dir / f"{Path(file_path).stem}.json"
+# Generates the output file name based on the media file’s stem (filename without extension).
+# Stores the JSON file in output_dir.
+# python
+# Copy
+# Edit
+#     with open(output_file, 'w', encoding='utf-8') as f:
+#         json.dump({"file": file_path, "transcription": text}, f, ensure_ascii=False, indent=4)
+# Opens the output file in write mode.
+# Uses json.dump() to save the transcription as JSON:
+# "file" – Stores the original media file path.
+# "transcription" – Stores the transcribed text.
+# ensure_ascii=False allows Unicode characters.
+# indent=4 makes the JSON readable.
+# Main Function
+# python
+# Copy
+# Edit
+# def main():
+#     parser = argparse.ArgumentParser(description="Transcribe media files in a folder.")
+# Creates an argument parser to handle command-line arguments.
+# description explains what the script does.
+# python
+# Copy
+# Edit
+#     parser.add_argument("input_folder", type=str, help="Path to the input folder containing media files")
+# Adds a required argument input_folder, which specifies where to find media files.
+# python
+# Copy
+# Edit
+#     parser.add_argument("--output_folder", type=str, default="transcriptions", help="Path to the output folder for transcriptions")
+# Adds an optional argument --output_folder:
+# Defaults to "transcriptions" if not provided.
+# python
+# Copy
+# Edit
+#     args = parser.parse_args()
+# Parses command-line arguments.
+# python
+# Copy
+# Edit
+#     if not Path(args.input_folder).exists():
+#         print(f"Error: The specified input folder '{args.input_folder}' does not exist.")
+#         return
+# Checks if input_folder exists.
+# If not, prints an error and stops execution.
+# python
+# Copy
+# Edit
+#     model = whisper.load_model("tiny", download_root="./models", device='cpu')
+# Loads the "tiny" Whisper model.
+# Downloads it to ./models if not already downloaded.
+# Forces execution on CPU.
+# python
+# Copy
+# Edit
+#     media_files = find_media_files(args.input_folder)
+# Calls find_media_files() to get a list of media files.
+# python
+# Copy
+# Edit
+#     if not media_files:
+#         print(f"No media files found in '{args.input_folder}'.")
+#         return
+# If no media files are found, prints a message and exits.
+# python
+# Copy
+# Edit
+#     print(f"Found {len(media_files)} media files. Processing...")
+# Displays how many files will be processed.
+# python
+# Copy
+# Edit
+#     processed_files = set()  # Prevent duplicates
+# Creates an empty set to track already processed files.
+# python
+# Copy
+# Edit
+#     for file in media_files:
+#         if file in processed_files:
+#             print(f"Skipping duplicate: {file}")
+#             continue  # Skip already processed files
+# Loops through each media file.
+# If the file has already been processed, skips it.
+# python
+# Copy
+# Edit
+#         text = transcribe_media(file, model)
+# Calls transcribe_media() to get the transcription.
+# python
+# Copy
+# Edit
+#         save_transcription(file, text, args.output_folder)
+# Calls save_transcription() to store the result.
+# python
+# Copy
+# Edit
+#         print(f"✅ Transcription saved: {file}")
+# Prints confirmation that the transcription was saved.
+# python
+# Copy
+# Edit
+#         processed_files.add(file)  # Mark as processed
+# Adds the file to the processed_files set.
+# Run the Script
+# python
+# Copy
+# Edit
+# if __name__ == "__main__":
+#     main()
+# Ensures the script runs only when executed directly (not imported as a module).
+# How to Run the Script
+# Run it from the command line:
+
+# sh
+# Copy
+# Edit
+# python script.py input_folder --output_folder output_folder
+# Example:
+
+# sh
+# Copy
+# Edit
+# python script.py ./input --output_folder ./output
